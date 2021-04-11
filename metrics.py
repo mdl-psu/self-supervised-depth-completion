@@ -66,8 +66,20 @@ class Result(object):
         valid_mask = target > 0.1
 
         # convert from meters to mm
-        output_mm = 1e3 * output[valid_mask]
-        target_mm = 1e3 * target[valid_mask]
+        # output_mm = 1e3 * output[valid_mask]
+        # target_mm = 1e3 * target[valid_mask]
+
+        output_mm = output
+        target_mm = target
+        # mean = torch.Tensor(np.array([6532.253599727499])).cuda()
+        # std = torch.Tensor(np.array([14615.053388025])).cuda()
+
+        # output_mm = (output - mean) / std
+        # target_mm = (target - mean) / std
+
+        # print(torch.max(output_mm))
+        # print(torch.max(target_mm))
+        # exit()
 
         abs_diff = (output_mm - target_mm).abs()
 

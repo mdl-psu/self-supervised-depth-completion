@@ -151,11 +151,13 @@ def depth_read(filename):
     # for details see readme.txt
     assert os.path.exists(filename), "file not found: {}".format(filename)
     img_file = Image.open(filename)
+    #print(filename)
     depth_png = np.array(img_file, dtype=int)
     img_file.close()
     # make sure we have a proper 16bit depth map here.. not 8bit!
-    assert np.max(depth_png) > 255, \
-        "np.max(depth_png)={}, path={}".format(np.max(depth_png),filename)
+    #print(filename)
+    #print(np.max(depth_png))
+    assert np.max(depth_png) > 255, "np.max(depth_png)={}, path={}".format(np.max(depth_png),filename)
 
     depth = depth_png.astype(np.float) / 256.
     # depth[depth_png == 0] = -1.
@@ -269,7 +271,8 @@ def get_rgb_near(path, args):
         if os.path.exists(path_near):
             break
         assert count < 20, "cannot find a nearby frame in 20 trials for {}".format(
-            path_rgb_tgt)
+            path)
+        count += 1
 
     return rgb_read(path_near)
 

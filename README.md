@@ -11,11 +11,14 @@ Our network is trained with the KITTI dataset alone, without pretraining on City
 Please create a new issue for code-related questions. 
 
 ## Contents
-1. [Dependency](#dependency)
-0. [Data](#data)
-0. [Trained Models](#trained-models)
-0. [Commands](#commands)
-0. [Citation](#citation)
+- [self-supervised-depth-completion](#self-supervised-depth-completion)
+	- [Contents](#contents)
+	- [Dependency](#dependency)
+	- [Data](#data)
+	- [Trained Models](#trained-models)
+	- [Commands](#commands)
+	- [Citation](#citation)
+	- [Example of data folder structure](#example-of-data-folder-structure)
 
 
 ## Dependency
@@ -96,3 +99,9 @@ If you use our code or method in your work, please cite the following:
 		year={2018}
 	}
 
+
+## Example of data folder structure
+
+"..\data\depth_selection\val_selection_cropped\groundtruth_depth\12288256.png"
+"..\data\depth_selection\val_selection_cropped\image\12288256.png"
+"..\data\depth_selection\val_selection_cropped\velodyne_raw\12288256.png"
