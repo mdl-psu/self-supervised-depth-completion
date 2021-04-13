@@ -110,6 +110,7 @@ parser.add_argument(
     help='dense | sparse | photo | sparse+photo | dense+photo')
 parser.add_argument('-e', '--evaluate', default='', type=str, metavar='PATH')
 parser.add_argument('--cpu', action="store_true", help='run on cpu')
+parser.add_argument('--name', '-n', metavar='NAME', default='Exp@', help='Experiment name')
 
 args = parser.parse_args()
 args.use_pose = ("photo" in args.train_mode)
@@ -294,6 +295,7 @@ def main():
             args.data_folder = args_new.data_folder
             args.val = args_new.val
             args.result = args_new.result
+            args.name = args_new.name
             is_eval = True
             mylogger.info("Completed.")
         else:
@@ -351,7 +353,7 @@ def main():
     mylogger.info("\t==> val_loader size:{}".format(len(val_loader)))
 
     # create backups and results folder
-    logger = helper.logger(args, mylogger)
+    logger = helper.logger(args, mylogger, folder_name)
     if checkpoint is not None:
         logger.best_result = checkpoint['best_result']
     mylogger.info("=> logger created.")

@@ -70,18 +70,21 @@ class Result(object):
         # convert from meters to mm
         # output_mm = 1e3 * output[valid_mask]
         # target_mm = 1e3 * target[valid_mask]
+        
+        torch.round_(output.mul_(256.0))
+        torch.clamp(output, 0, 65535)
+        
+        torch.round_(target.mul_(256.0))
+        torch.clamp(target, 0, 65535)
+        
+        output.sub_(mean[0]).div_(std[0])
+        target.sub_(mean[0]).div_(std[0])
 
         output_mm = output[valid_mask]
         target_mm = target[valid_mask]
         
-        torch.round_(output_mm.mul_(256.0))
-        torch.clamp(output_mm, 0, 65535)
-        
-        torch.round_(target_mm.mul_(256.0))
-        torch.clamp(target_mm, 0, 65535)
-        
-        output_mm.sub_(mean[0]).div_(std[0])
-        target_mm.sub_(mean[0]).div_(std[0])        
+        # output_mm = output
+        # target_mm = target
         
         # mean = torch.Tensor(np.array([6532.253599727499])).cuda()
         # std = torch.Tensor(np.array([14615.053388025])).cuda()

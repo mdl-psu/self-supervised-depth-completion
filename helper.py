@@ -37,7 +37,7 @@ def createLogger(file_name):
 
 
 class logger:
-    def __init__(self, args, mylogger, prepare=True):
+    def __init__(self, args, mylogger, logdir, prepare=True):
         self.args = args
         output_directory = get_folder_name(args)
         self.output_directory = output_directory
@@ -208,7 +208,8 @@ class logger:
             vis_utils.save_depth_as_uint16png(img, filename)
 
     def conditional_summarize(self, mode, avg, is_best):
-        self.mylogger.info("\n*\nSummary of ", mode, "round")
+        # self.mylogger.info("\n*\nSummary of ", mode, "round")
+        self.mylogger.info("\n*\nSummary of {} {}".format(mode,"round"))
         self.mylogger.info(''
               'RMSE={average.rmse:.3f}\n'
               'MAE={average.mae:.3f}\n'
@@ -264,22 +265,26 @@ def save_checkpoint(state, is_best, epoch, output_directory):
             os.remove(prev_checkpoint_filename)
 
 
+# def get_folder_name(args):
+    # current_time = time.strftime('%Y-%m-%d@%H-%M')
+    # if args.use_pose:
+        # prefix = "mode={}.w1={}.w2={}.".format(args.train_mode, args.w1,
+                                               # args.w2)
+    # else:
+        # prefix = "mode={}.".format(args.train_mode)
+    
+    # # print("The output dir {}".format(args.result))
+    
+    # return os.path.join(args.result,
+        # prefix + 'input={}.resnet{}.criterion={}.lr={}.bs={}.wd={}.pretrained={}.jitter={}.time={}'.
+        # format(args.input, args.layers, args.criterion, \
+            # args.lr, args.batch_size, args.weight_decay, \
+            # args.pretrained, args.jitter, current_time
+            # ))
+
 def get_folder_name(args):
     current_time = time.strftime('%Y-%m-%d@%H-%M')
-    if args.use_pose:
-        prefix = "mode={}.w1={}.w2={}.".format(args.train_mode, args.w1,
-                                               args.w2)
-    else:
-        prefix = "mode={}.".format(args.train_mode)
-    
-    # print("The output dir {}".format(args.result))
-    
-    return os.path.join(args.result,
-        prefix + 'input={}.resnet{}.criterion={}.lr={}.bs={}.wd={}.pretrained={}.jitter={}.time={}'.
-        format(args.input, args.layers, args.criterion, \
-            args.lr, args.batch_size, args.weight_decay, \
-            args.pretrained, args.jitter, current_time
-            ))
+    return os.path.join(args.result,'{}.time={}'.format(args.name,current_time))
 
 
 avgpool = torch.nn.AvgPool2d(kernel_size=2, stride=2).cuda()
