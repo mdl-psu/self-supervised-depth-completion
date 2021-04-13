@@ -5,6 +5,7 @@ import torch
 import csv
 import vis_utils
 from metrics import Result
+import logging
 
 fieldnames = [
     'epoch', 'rmse', 'photo', 'mae', 'irmse', 'imae', 'mse', 'absrel', 'lg10',
@@ -12,14 +13,37 @@ fieldnames = [
     'gpu_time'
 ]
 
+def createLogger(file_name):
+
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO) # or any other level
+    logger.addHandler(ch)
+
+    # create formatter
+    formatter = logging.Formatter('%(asctime)s - %(message)s')
+
+    ch.setFormatter(formatter)
+    
+    fh = logging.FileHandler(file_name, mode='wt')
+    fh.setLevel(logging.INFO) # or any level you want
+    logger.addHandler(fh)
+
+    fh.setFormatter(formatter)
+    
+    return logger
+
 
 class logger:
-    def __init__(self, args, prepare=True):
+    def __init__(self, args, mylogger, prepare=True):
         self.args = args
         output_directory = get_folder_name(args)
         self.output_directory = output_directory
         self.best_result = Result()
         self.best_result.set_to_worst()
+        self.mylogger = mylogger
 
         if not prepare:
             return
@@ -31,7 +55,7 @@ class logger:
 
         # backup the source code
         if args.resume == '':
-            print("=> creating source code backup ...")
+            mylogger.info("=> creating source code backup ...")
             backup_directory = os.path.join(output_directory, "code_backup")
             self.backup_directory = backup_directory
             backup_source_code(backup_directory)
@@ -42,15 +66,15 @@ class logger:
             with open(self.val_csv, 'w') as csvfile:
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
                 writer.writeheader()
-            print("=> finished creating source code backup.")
+            mylogger.info("=> finished creating source code backup.")
 
     def conditional_print(self, split, i, epoch, lr, n_set, blk_avg_meter,
                           avg_meter):
         if (i + 1) % self.args.print_freq == 0:
             avg = avg_meter.average()
             blk_avg = blk_avg_meter.average()
-            print('=> output: {}'.format(self.output_directory))
-            print(
+            self.mylogger.info('=> output: {}'.format(self.output_directory))
+            self.mylogger.info(
                 '{split} Epoch: {0} [{1}/{2}]\tlr={lr} '
                 't_Data={blk_avg.data_time:.3f}({average.data_time:.3f}) '
                 't_GPU={blk_avg.gpu_time:.3f}({average.gpu_time:.3f})\n\t'
@@ -141,14 +165,14 @@ class logger:
         # print("I'm here at 141 helper!")
         
         if mode == 'val' or mode == 'eval':
-            skip = 100
+            skip = 20
             if i == 0:
                 # print("I'm here at 146 helper!")
                 self.img_merge = vis_utils.merge_into_row(ele, pred)
-            elif i % skip == 0 and i < 8 * skip:
+            elif i % skip == 0 and i < 3 * skip:
                 row = vis_utils.merge_into_row(ele, pred)
                 self.img_merge = vis_utils.add_row(self.img_merge, row)
-            elif i == 8 * skip:
+            elif i == 3 * skip:
                 # print("I'm here at 152 helper!")
                 filename = self._get_img_comparison_name(mode, epoch)
                 vis_utils.save_image(self.img_merge, filename)
@@ -184,8 +208,8 @@ class logger:
             vis_utils.save_depth_as_uint16png(img, filename)
 
     def conditional_summarize(self, mode, avg, is_best):
-        print("\n*\nSummary of ", mode, "round")
-        print(''
+        self.mylogger.info("\n*\nSummary of ", mode, "round")
+        self.mylogger.info(''
               'RMSE={average.rmse:.3f}\n'
               'MAE={average.mae:.3f}\n'
               'Photo={average.photometric:.3f}\n'
@@ -198,14 +222,14 @@ class logger:
               'Lg10={average.lg10:.3f}\n'
               't_GPU={time:.3f}'.format(average=avg, time=avg.gpu_time))
         if is_best and mode == "val":
-            print("New best model by %s (was %.3f)" %
+            self.mylogger.info("New best model by %s (was %.3f)" %
                   (self.args.rank_metric,
                    self.get_ranking_error(self.old_best_result)))
         elif mode == "val":
-            print("(best %s is %.3f)" %
+            self.mylogger.info("(best %s is %.3f)" %
                   (self.args.rank_metric,
                    self.get_ranking_error(self.best_result)))
-        print("*\n")
+        self.mylogger.info("*\n")
 
 
 ignore_hidden = shutil.ignore_patterns(".", "..", ".git*", "*pycache*",

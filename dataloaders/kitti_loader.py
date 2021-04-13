@@ -48,19 +48,19 @@ def get_paths_and_transform(split, args):
         glob_d = os.path.join(
             args.data_folder,
             # 'data_depth_velodyne/train/*_sync/proj_depth/velodyne_raw/image_0[2,3]/*.png'
-            'train/image_lr/*.png'
+            'train/clean_train/image_lr/*.png'
         )
         
         glob_gt = os.path.join(
             args.data_folder,
             # 'data_depth_annotated/train/*_sync/proj_depth/groundtruth/image_0[2,3]/*.png'
-            'train/image_hr/*.png'
+            'train/clean_train/image_hr/*.png'
         )
         
         glob_rgb = os.path.join(
             args.data_folder,
             # 'data_depth_annotated/train/*_sync/proj_depth/groundtruth/image_0[2,3]/*.png'
-            'train/image_rgb/*.png'
+            'train/clean_train/image_rgb/*.png'
         )
 
         def get_rgb_paths(p):
@@ -74,17 +74,17 @@ def get_paths_and_transform(split, args):
             glob_d = os.path.join(
                 args.data_folder,
                 # 'data_depth_velodyne/val/*_sync/proj_depth/velodyne_raw/image_0[2,3]/*.png'
-                'val/image_lr/*.png'
+                'val/clean_val/image_lr/*.png'
             )
             glob_gt = os.path.join(
                 args.data_folder,
                 # 'data_depth_annotated/val/*_sync/proj_depth/groundtruth/image_0[2,3]/*.png'
-                'val/image_hr/*.png'
+                'val/clean_val/image_hr/*.png'
             )
             glob_rgb = os.path.join(
                 args.data_folder,
                 # 'data_depth_annotated/val/*_sync/proj_depth/groundtruth/image_0[2,3]/*.png'
-                'val/image_rgb/*.png'
+                'val/clean_val/image_rgb/*.png'
             )
             def get_rgb_paths(p):
                 ps = p.split('/')

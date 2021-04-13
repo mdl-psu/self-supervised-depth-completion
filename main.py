@@ -46,13 +46,13 @@ parser.add_argument('-b',
                     help='mini-batch size (default: 1)')
 parser.add_argument('--lr',
                     '--learning-rate',
-                    default=1e-5,
+                    default=1e-4,
                     type=float,
                     metavar='LR',
                     help='initial learning rate (default 1e-5)')
 parser.add_argument('--weight-decay',
                     '--wd',
-                    default=0,
+                    default=1e-4,
                     type=float,
                     metavar='W',
                     help='weight decay (default: 0)')
@@ -68,7 +68,7 @@ parser.add_argument('--resume',
                     metavar='PATH',
                     help='path to latest checkpoint (default: none)')
 parser.add_argument('--data-folder',
-                    default='./sample_data/',
+                    default='/home/mdl/mzk591/dataset/data.ShapeNetDepth/disk3/',
                     type=str,
                     metavar='PATH',
                     help='data folder (default: none)')
@@ -88,7 +88,7 @@ parser.add_argument('--pretrained',
                     help='use ImageNet pre-trained weights')
 parser.add_argument('--val',
                     type=str,
-                    default="select",
+                    default="full",
                     choices=["select", "full"],
                     help='full or select validation set')
 parser.add_argument('--jitter',
@@ -114,7 +114,7 @@ parser.add_argument('--cpu', action="store_true", help='run on cpu')
 args = parser.parse_args()
 args.use_pose = ("photo" in args.train_mode)
 # args.pretrained = not args.no_pretrained
-args.result = os.path.join('./', 'results')
+args.result = os.path.join('./', 'logdir')
 args.use_rgb = ('rgb' in args.input) or args.use_pose
 args.use_d = 'd' in args.input
 args.use_g = 'g' in args.input
@@ -122,7 +122,14 @@ if args.use_pose:
     args.w1, args.w2 = 0.1, 0.1
 else:
     args.w1, args.w2 = 0, 0
-print(args)
+    
+folder_name = helper.get_folder_name(args)
+if not os.path.exists(folder_name):
+    os.makedirs(folder_name)
+log_file_name = os.path.join(folder_name,'logfile.log')
+mylogger = helper.createLogger(log_file_name)    
+    
+mylogger.info(args)
 
 cuda = torch.cuda.is_available() and not args.cpu
 if cuda:
@@ -131,7 +138,7 @@ if cuda:
     device = torch.device("cuda")
 else:
     device = torch.device("cpu")
-print("=> using '{}' for computation.".format(device))
+mylogger.info("=> using '{}' for computation.".format(device))
 
 # define loss functions
 depth_criterion = criteria.MaskedMSELoss() if (
@@ -151,6 +158,8 @@ if args.use_pose:
 
 
 def iterate(mode, args, loader, model, optimizer, logger, epoch):
+    global mylogger
+    
     block_average_meter = AverageMeter()
     average_meter = AverageMeter()
     meters = [block_average_meter, average_meter]
@@ -272,40 +281,40 @@ def iterate(mode, args, loader, model, optimizer, logger, epoch):
 
 def main():
     global args
+    global mylogger
+    
     checkpoint = None
     is_eval = False
     if args.evaluate:
         args_new = args
         if os.path.isfile(args.evaluate):
-            print("=> loading checkpoint '{}' ... ".format(args.evaluate),
-                  end='')
+            mylogger.info("=> loading checkpoint '{}' ... ".format(args.evaluate))
             checkpoint = torch.load(args.evaluate, map_location=device)
             args = checkpoint['args']
             args.data_folder = args_new.data_folder
             args.val = args_new.val
             args.result = args_new.result
             is_eval = True
-            print("Completed.")
+            mylogger.info("Completed.")
         else:
-            print("No model found at '{}'".format(args.evaluate))
+            mylogger.info("No model found at '{}'".format(args.evaluate))
             return
     elif args.resume:  # optionally resume from a checkpoint
         args_new = args
         if os.path.isfile(args.resume):
-            print("=> loading checkpoint '{}' ... ".format(args.resume),
-                  end='')
+            mylogger.info("=> loading checkpoint '{}' ... ".format(args.resume))
             checkpoint = torch.load(args.resume, map_location=device)
             args.start_epoch = checkpoint['epoch'] + 1
             args.data_folder = args_new.data_folder
             args.val = args_new.val
             args.result = args_new.result
-            print("Completed. Resuming from epoch {}.".format(
+            mylogger.info("Completed. Resuming from epoch {}.".format(
                 checkpoint['epoch']))
         else:
-            print("No checkpoint found at '{}'".format(args.resume))
+            mylogger.info("No checkpoint found at '{}'".format(args.resume))
             return
 
-    print("=> creating model and optimizer ... ", end='')
+    mylogger.info("=> creating model and optimizer ... ")
     model = DepthCompletionNet(args).to(device)
     model_named_params = [
         p for _, p in model.named_parameters() if p.requires_grad
@@ -313,16 +322,16 @@ def main():
     optimizer = torch.optim.Adam(model_named_params,
                                  lr=args.lr,
                                  weight_decay=args.weight_decay)
-    print("completed.")
+    mylogger.info("completed.")
     if checkpoint is not None:
         model.load_state_dict(checkpoint['model'])
         optimizer.load_state_dict(checkpoint['optimizer'])
-        print("=> checkpoint state loaded.")
+        mylogger.info("=> checkpoint state loaded.")
 
     model = torch.nn.DataParallel(model)
 
     # Data loading code
-    print("=> creating data loaders ... ")
+    mylogger.info("=> creating data loaders ... ")
     if not is_eval:
         train_dataset = KittiDepth('train', args)
         train_loader = torch.utils.data.DataLoader(train_dataset,
@@ -331,32 +340,32 @@ def main():
                                                    num_workers=args.workers,
                                                    pin_memory=True,
                                                    sampler=None)
-        print("\t==> train_loader size:{}".format(len(train_loader)))
+        mylogger.info("\t==> train_loader size:{}".format(len(train_loader)))
     val_dataset = KittiDepth('val', args)
     val_loader = torch.utils.data.DataLoader(
         val_dataset,
-        batch_size=1,
+        batch_size=8,
         shuffle=False,
-        num_workers=2,
+        num_workers=4,
         pin_memory=True)  # set batch size to be 1 for validation
-    print("\t==> val_loader size:{}".format(len(val_loader)))
+    mylogger.info("\t==> val_loader size:{}".format(len(val_loader)))
 
     # create backups and results folder
-    logger = helper.logger(args)
+    logger = helper.logger(args, mylogger)
     if checkpoint is not None:
         logger.best_result = checkpoint['best_result']
-    print("=> logger created.")
+    mylogger.info("=> logger created.")
 
     if is_eval:
-        print("=> starting model evaluation ...")
+        mylogger.info("=> starting model evaluation ...")
         result, is_best = iterate("val", args, val_loader, model, None, logger,
                                   checkpoint['epoch'])
         return
 
     # main loop
-    print("=> starting main loop ...")
+    mylogger.info("=> starting main loop ...")
     for epoch in range(args.start_epoch, args.epochs):
-        print("=> starting training epoch {} ..".format(epoch))
+        mylogger.info("=> starting training epoch {} ..".format(epoch))
         iterate("train", args, train_loader, model, optimizer, logger,
                 epoch)  # train for one epoch
         result, is_best = iterate("val", args, val_loader, model, None, logger,
