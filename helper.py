@@ -138,14 +138,18 @@ class logger:
 
     def conditional_save_img_comparison(self, mode, i, ele, pred, epoch):
         # save 8 images for visualization
+        # print("I'm here at 141 helper!")
+        
         if mode == 'val' or mode == 'eval':
             skip = 100
             if i == 0:
+                # print("I'm here at 146 helper!")
                 self.img_merge = vis_utils.merge_into_row(ele, pred)
             elif i % skip == 0 and i < 8 * skip:
                 row = vis_utils.merge_into_row(ele, pred)
                 self.img_merge = vis_utils.add_row(self.img_merge, row)
             elif i == 8 * skip:
+                # print("I'm here at 152 helper!")
                 filename = self._get_img_comparison_name(mode, epoch)
                 vis_utils.save_image(self.img_merge, filename)
 
@@ -243,6 +247,9 @@ def get_folder_name(args):
                                                args.w2)
     else:
         prefix = "mode={}.".format(args.train_mode)
+    
+    print("The output dir {}".format(args.result))
+    
     return os.path.join(args.result,
         prefix + 'input={}.resnet{}.criterion={}.lr={}.bs={}.wd={}.pretrained={}.jitter={}.time={}'.
         format(args.input, args.layers, args.criterion, \

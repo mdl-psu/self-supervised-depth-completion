@@ -47,11 +47,20 @@ def get_paths_and_transform(split, args):
         transform = train_transform
         glob_d = os.path.join(
             args.data_folder,
-            'data_depth_velodyne/train/*_sync/proj_depth/velodyne_raw/image_0[2,3]/*.png'
+            # 'data_depth_velodyne/train/*_sync/proj_depth/velodyne_raw/image_0[2,3]/*.png'
+            'train/image_lr/*.png'
         )
+        
         glob_gt = os.path.join(
             args.data_folder,
-            'data_depth_annotated/train/*_sync/proj_depth/groundtruth/image_0[2,3]/*.png'
+            # 'data_depth_annotated/train/*_sync/proj_depth/groundtruth/image_0[2,3]/*.png'
+            'train/image_hr/*.png'
+        )
+        
+        glob_rgb = os.path.join(
+            args.data_folder,
+            # 'data_depth_annotated/train/*_sync/proj_depth/groundtruth/image_0[2,3]/*.png'
+            'train/image_rgb/*.png'
         )
 
         def get_rgb_paths(p):
@@ -64,11 +73,18 @@ def get_paths_and_transform(split, args):
             transform = val_transform
             glob_d = os.path.join(
                 args.data_folder,
-                'data_depth_velodyne/val/*_sync/proj_depth/velodyne_raw/image_0[2,3]/*.png'
+                # 'data_depth_velodyne/val/*_sync/proj_depth/velodyne_raw/image_0[2,3]/*.png'
+                'val/image_lr/*.png'
             )
             glob_gt = os.path.join(
                 args.data_folder,
-                'data_depth_annotated/val/*_sync/proj_depth/groundtruth/image_0[2,3]/*.png'
+                # 'data_depth_annotated/val/*_sync/proj_depth/groundtruth/image_0[2,3]/*.png'
+                'val/image_hr/*.png'
+            )
+            glob_rgb = os.path.join(
+                args.data_folder,
+                # 'data_depth_annotated/val/*_sync/proj_depth/groundtruth/image_0[2,3]/*.png'
+                'val/image_rgb/*.png'
             )
             def get_rgb_paths(p):
                 ps = p.split('/')
@@ -110,7 +126,7 @@ def get_paths_and_transform(split, args):
         # train or val-full or val-select
         paths_d = sorted(glob.glob(glob_d)) 
         paths_gt = sorted(glob.glob(glob_gt)) 
-        paths_rgb = [get_rgb_paths(p) for p in paths_gt]
+        paths_rgb = sorted(glob.glob(glob_rgb))
     else:  
         # test only has d or rgb
         paths_rgb = sorted(glob.glob(glob_rgb))
@@ -235,6 +251,7 @@ def handle_gray(rgb, args):
     if not args.use_g:
         return rgb, None
     else:
+        # print("I'm here @kitti_loader 254")
         img = np.array(Image.fromarray(rgb).convert('L'))
         img = np.expand_dims(img, -1)
         if not args.use_rgb:

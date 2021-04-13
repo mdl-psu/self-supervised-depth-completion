@@ -195,11 +195,14 @@ class DepthCompletionNet(nn.Module):
         y = torch.cat((convt1, conv1), 1)
 
         y = self.convtf(y)
-
+        
+        print("The PRE output min:{}, max:{}, shape:{}, dtype:{}".format(torch.min(y),torch.max(y),y.shape,y.dtype))
+        
         if self.training:
             return 100 * y
         else:
-            min_distance = 0.9
-            return F.relu(
-                100 * y - min_distance
-            ) + min_distance  # the minimum range of Velodyne is around 3 feet ~= 0.9m
+            # min_distance = 0.9
+            # return F.relu(
+                # 100 * y - min_distance
+            # ) + min_distance  # the minimum range of Velodyne is around 3 feet ~= 0.9m
+            return F.relu(100 * y)

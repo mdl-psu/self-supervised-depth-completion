@@ -20,9 +20,16 @@ def merge_into_row(ele, pred):
     def preprocess_depth(x):
         y = np.squeeze(x.data.cpu().numpy())
         return depth_colorize(y)
+    
+    # def preprocess_pred_depth(x, valid_mask):
+        # y = np.squeeze(x.data.cpu().numpy())
+        # depth_template = np.zeros(y.shape)
+        # depth_template[valid_mask] = y[valid_mask]
+        # return depth_colorize(depth_template)
 
     # if is gray, transforms to rgb
     img_list = []
+    # valid_mask = np.squeeze(ele['gt'][0, ...].data.cpu().numpy()) > 0.0
     if 'rgb' in ele:
         rgb = np.squeeze(ele['rgb'][0, ...].data.cpu().numpy())
         rgb = np.transpose(rgb, (1, 2, 0))
@@ -33,6 +40,7 @@ def merge_into_row(ele, pred):
         img_list.append(g)
     if 'd' in ele:
         img_list.append(preprocess_depth(ele['d'][0, ...]))
+    # img_list.append(preprocess_pred_depth(pred[0, ...],valid_mask))
     img_list.append(preprocess_depth(pred[0, ...]))
     if 'gt' in ele:
         img_list.append(preprocess_depth(ele['gt'][0, ...]))
@@ -46,6 +54,7 @@ def add_row(img_merge, row):
 
 
 def save_image(img_merge, filename):
+    # print("I'm here at 49 vis_utils!")
     image_to_write = cv2.cvtColor(img_merge, cv2.COLOR_RGB2BGR)
     cv2.imwrite(filename, image_to_write)
 

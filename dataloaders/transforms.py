@@ -434,9 +434,13 @@ class BottomCrop(object):
         h = img.shape[0]
         w = img.shape[1]
         th, tw = output_size
-        i = h - th
-        j = int(round((w - tw) / 2.))
-
+        # i = h - th
+        # j = int(round((w - tw) / 2.))
+        i = 0 #ffk fix
+        j = 0
+        
+        print("Original KITTI crop params: h={}, w={}, i={}, j={}".format(h,w,i,j))
+        print("crop h: {} to {}, w: {} to {}".format(i,i+h,j,j+w))
         # randomized left and right cropping
         # i = np.random.randint(i-3, i+4)
         # j = np.random.randint(j-1, j+1)

@@ -6,6 +6,7 @@ import torch
 import torch.nn.parallel
 import torch.optim
 import torch.utils.data
+import numpy as np
 
 from dataloaders.kitti_loader import load_calib, oheight, owidth, input_options, KittiDepth
 from model import DepthCompletionNet
@@ -67,7 +68,7 @@ parser.add_argument('--resume',
                     metavar='PATH',
                     help='path to latest checkpoint (default: none)')
 parser.add_argument('--data-folder',
-                    default='../data',
+                    default='./sample_data/',
                     type=str,
                     metavar='PATH',
                     help='data folder (default: none)')
@@ -113,7 +114,7 @@ parser.add_argument('--cpu', action="store_true", help='run on cpu')
 args = parser.parse_args()
 args.use_pose = ("photo" in args.train_mode)
 # args.pretrained = not args.no_pretrained
-args.result = os.path.join('..', 'results')
+args.result = os.path.join('./', 'results')
 args.use_rgb = ('rgb' in args.input) or args.use_pose
 args.use_d = 'd' in args.input
 args.use_g = 'g' in args.input
@@ -138,6 +139,7 @@ depth_criterion = criteria.MaskedMSELoss() if (
 photometric_criterion = criteria.PhotometricLoss()
 smoothness_criterion = criteria.SmoothnessLoss()
 
+# probaly do not need
 if args.use_pose:
     # hard-coded KITTI camera intrinsics
     K = load_calib()
@@ -164,6 +166,9 @@ def iterate(mode, args, loader, model, optimizer, logger, epoch):
         lr = 0
 
     for i, batch_data in enumerate(loader):
+        print("The batch data keys are {}".format(batch_data.keys()))
+        
+        
         start = time.time()
         batch_data = {
             key: val.to(device)
@@ -174,7 +179,20 @@ def iterate(mode, args, loader, model, optimizer, logger, epoch):
         data_time = time.time() - start
 
         start = time.time()
+        
+        temp_d = batch_data['d']
+        temp_gt = batch_data['gt']
+        temp_g = batch_data['g']
+
+        print("The depth min:{}, max:{}, shape:{}, dtype:{}".format(torch.min(temp_d),torch.max(temp_d),temp_d.shape,temp_d.dtype))
+        print("The groundtruth min:{}, max:{}, shape:{}, dtype:{}".format(torch.min(temp_gt),torch.max(temp_gt),temp_gt.shape,temp_gt.dtype))
+        print("The greyscale min:{}, max:{}, shape:{}, dtype:{}".format(torch.min(temp_g),torch.max(temp_g),temp_g.shape,temp_g.dtype))
+        
         pred = model(batch_data)
+       
+        temp_out = pred.detach().cpu()
+        print("The output min:{}, max:{}, shape:{}, dtype:{}".format(torch.min(temp_out),torch.max(temp_out),temp_out.shape,temp_out.dtype))
+        
         depth_loss, photometric_loss, smooth_loss, mask = 0, 0, 0, None
         if mode == 'train':
             # Loss 1: the direct depth supervision from ground truth label
@@ -265,6 +283,7 @@ def main():
             args = checkpoint['args']
             args.data_folder = args_new.data_folder
             args.val = args_new.val
+            args.result = args_new.result
             is_eval = True
             print("Completed.")
         else:
@@ -279,6 +298,7 @@ def main():
             args.start_epoch = checkpoint['epoch'] + 1
             args.data_folder = args_new.data_folder
             args.val = args_new.val
+            args.result = args_new.result
             print("Completed. Resuming from epoch {}.".format(
                 checkpoint['epoch']))
         else:

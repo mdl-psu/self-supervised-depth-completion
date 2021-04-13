@@ -69,8 +69,8 @@ class Result(object):
         # output_mm = 1e3 * output[valid_mask]
         # target_mm = 1e3 * target[valid_mask]
 
-        output_mm = output
-        target_mm = target
+        output_mm = output[valid_mask]
+        target_mm = target[valid_mask]
         # mean = torch.Tensor(np.array([6532.253599727499])).cuda()
         # std = torch.Tensor(np.array([14615.053388025])).cuda()
 
