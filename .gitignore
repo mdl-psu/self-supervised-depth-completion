@@ -109,3 +109,4 @@ ENV/
 chkpt/
 sample_data/
 results/
+logdir/

@@ -166,7 +166,7 @@ def iterate(mode, args, loader, model, optimizer, logger, epoch):
         lr = 0
 
     for i, batch_data in enumerate(loader):
-        print("The batch data keys are {}".format(batch_data.keys()))
+        # print("The batch data keys are {}".format(batch_data.keys()))
         
         
         start = time.time()
@@ -180,18 +180,18 @@ def iterate(mode, args, loader, model, optimizer, logger, epoch):
 
         start = time.time()
         
-        temp_d = batch_data['d']
-        temp_gt = batch_data['gt']
-        temp_g = batch_data['g']
+        # temp_d = batch_data['d']
+        # temp_gt = batch_data['gt']
+        # temp_g = batch_data['g']
 
-        print("The depth min:{}, max:{}, shape:{}, dtype:{}".format(torch.min(temp_d),torch.max(temp_d),temp_d.shape,temp_d.dtype))
-        print("The groundtruth min:{}, max:{}, shape:{}, dtype:{}".format(torch.min(temp_gt),torch.max(temp_gt),temp_gt.shape,temp_gt.dtype))
-        print("The greyscale min:{}, max:{}, shape:{}, dtype:{}".format(torch.min(temp_g),torch.max(temp_g),temp_g.shape,temp_g.dtype))
+        # print("The depth min:{}, max:{}, shape:{}, dtype:{}".format(torch.min(temp_d),torch.max(temp_d),temp_d.shape,temp_d.dtype))
+        # print("The groundtruth min:{}, max:{}, shape:{}, dtype:{}".format(torch.min(temp_gt),torch.max(temp_gt),temp_gt.shape,temp_gt.dtype))
+        # print("The greyscale min:{}, max:{}, shape:{}, dtype:{}".format(torch.min(temp_g),torch.max(temp_g),temp_g.shape,temp_g.dtype))
         
         pred = model(batch_data)
        
-        temp_out = pred.detach().cpu()
-        print("The output min:{}, max:{}, shape:{}, dtype:{}".format(torch.min(temp_out),torch.max(temp_out),temp_out.shape,temp_out.dtype))
+        # temp_out = pred.detach().cpu()
+        # print("The output min:{}, max:{}, shape:{}, dtype:{}".format(torch.min(temp_out),torch.max(temp_out),temp_out.shape,temp_out.dtype))
         
         depth_loss, photometric_loss, smooth_loss, mask = 0, 0, 0, None
         if mode == 'train':

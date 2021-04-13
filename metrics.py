@@ -4,6 +4,8 @@ import numpy as np
 
 lg_e_10 = math.log(10)
 
+mean = np.array([6532.253599727499])
+std = np.array([14615.053388025])
 
 def log10(x):
     """Convert a new tensor with the base-10 logarithm of the elements of x. """
@@ -71,6 +73,16 @@ class Result(object):
 
         output_mm = output[valid_mask]
         target_mm = target[valid_mask]
+        
+        torch.round_(output_mm.mul_(256.0))
+        torch.clamp(output_mm, 0, 65535)
+        
+        torch.round_(target_mm.mul_(256.0))
+        torch.clamp(target_mm, 0, 65535)
+        
+        output_mm.sub_(mean[0]).div_(std[0])
+        target_mm.sub_(mean[0]).div_(std[0])        
+        
         # mean = torch.Tensor(np.array([6532.253599727499])).cuda()
         # std = torch.Tensor(np.array([14615.053388025])).cuda()
 
